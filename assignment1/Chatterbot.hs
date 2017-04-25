@@ -105,29 +105,31 @@ reductionsApply _ = id
 
 -- Replaces a wildcard in a list with the list given as the third argument
 substitute :: Eq a => a -> [a] -> [a] -> [a]
-substitute _ _ [] = Nothing
-substitute _ [] _ = Nothing
-substitute _ _ _ = Nothing
-substitute _ _ _ = []
-substitute x y z:zs
-| x==z  = y:replace x y zs
-|otherwise = z:replace x y zs
-{- TO BE WRITTEN -}
-
+substitute _ _ [] = []
+substitute _ [] _ = []
+substitute x (y:ys) z
+    | x == y     = z ++ substitute x ys z
+    | otherwise  = y : substitute x ys z
 
 -- Tries to match two lists. If they match, the result consists of the sublist
 -- bound to the wildcard in the pattern list.
 match :: Eq a => a -> [a] -> [a] -> Maybe [a]
-match _ _ _ = Nothing
-{- TO BE WRITTEN -}
-
+match _ [] [] = Just []
+match _ [] (x:xs) = Nothing
+match _ (x:xs) [] = Nothing
+match x (y:ys) (z:zs)
+    | x == y            = singleWildcardMatch (x:ys) (z:zs)
+    | x /= y && y == z  = match x ys zs
+    | z /= y            = Nothing
 
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
-singleWildcardMatch (wc:ps) (x:xs) = Nothing
-{- TO BE WRITTEN -}
-longerWildcardMatch (wc:ps) (x:xs) = Nothing
-{- TO BE WRITTEN -}
+singleWildcardMatch (wc:ps) (x:xs)
+    | ps == xs  = Just x
+    | otherwise = Nothing
+
+longerWildcardMatch (wc:ps) (x:xs)
+    |
 
 
 
