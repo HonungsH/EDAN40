@@ -2,6 +2,7 @@ module Chatterbot where
 import Utilities
 import System.Random
 import Data.Char
+import Data.Maybe
 
 chatterbot :: String -> [(String, [String])] -> IO ()
 chatterbot botName botRules = do
@@ -118,20 +119,17 @@ match _ [] [] = Just []
 match _ [] (x:xs) = Nothing
 match _ (x:xs) [] = Nothing
 match x (y:ys) (z:zs)
-    | x == y            = singleWildcardMatch (x:ys) (z:zs)
+    | x == y            = orElse (singleWildcardMatch (x:ys) (z:zs)) (longerWildcardMatch (x:ys) (z:zs))
     | x /= y && y == z  = match x ys zs
-    | z /= y            = Nothing
+    | otherwise         = Nothing
 
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 singleWildcardMatch (wc:ps) (x:xs)
-    | ps == xs  = Just x
-    | otherwise = Nothing
+    | isJust (match wc ps xs)   = Just [x]
+    | otherwise                 = Nothing
 
-longerWildcardMatch (wc:ps) (x:xs)
-    |
-
-
+longerWildcardMatch (wc:ps) (x:xs) = mmap (x : ) (match wc (wc:ps) xs)
 
 -- Test cases --------------------
 
@@ -151,9 +149,13 @@ matchCheck = matchTest == Just testSubstitutions
 -- Applying patterns
 --------------------------------------------------------
 
+-- test case
+frenchPresentation = ("My name is *", "Je m'appelle *")
+
 -- Applying a single pattern
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
-transformationApply _ _ _ _ = Nothing
+--transformationApply _ _ _ _ = Nothing
+transformationApply x f y (o, t) = Just (substitute x t (fromJust (match x o y)))
 {- TO BE WRITTEN -}
 
 

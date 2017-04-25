@@ -21,4 +21,3 @@ fix f x
 
 pick :: RealFrac r => r -> [a] -> a
 pick u xs = xs !! (floor.(u*).fromIntegral.length) xs
-
