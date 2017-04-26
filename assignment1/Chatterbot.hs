@@ -26,17 +26,22 @@ type BotBrain = [(Phrase, [Phrase])]
 
 --------------------------------------------------------
 
+--test case 
+transformations = [(words "I hate *", words "Why do you hate * ?")]
+
 stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
-{- TO BE WRITTEN -}
-stateOfMind _ = return id
+stateOfMind botBrain = do
+     num <- randomIO :: IO Float
+     
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-{- TO BE WRITTEN -}
-rulesApply _ = id
+rulesApply = (maybe [] id.) . transformationsApply "*" reflect
 
 reflect :: Phrase -> Phrase
-{- TO BE WRITTEN -}
-reflect = id
+reflect [] = []
+reflect (x:xs)
+    | (lookup x reflections) == Nothing   = x : (reflect xs)
+    | otherwise                           = (fromJust (lookup x reflections)) : (reflect xs)
 
 reflections =
   [ ("am",     "are"),
@@ -152,14 +157,31 @@ matchCheck = matchTest == Just testSubstitutions
 -- test case
 frenchPresentation = ("My name is *", "Je m'appelle *")
 
+swedishPresentation = ("My name is *", "Mitt namn är *")    
+presentations = [frenchPresentation, swedishPresentation]
+
+{-
+transformationsApplyTest =
+  test [
+    transformationsApply '*' id presentations "My name is Zacharias"
+      ~?= Just "Je m'appelle Zacharias",
+    transformationsApply '*' id (reverse presentations) "My name is Zacharias"
+      ~?= Just "Mitt namn är Zacharias",
+    transformationsApply '*' id (reverse presentations) "My shoe size is 45"
+      ~?= Nothing
+  ]
+-}
+
 -- Applying a single pattern
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
 --transformationApply _ _ _ _ = Nothing
-transformationApply x f y (o, t) = Just (substitute x t (fromJust (match x o y)))
-{- TO BE WRITTEN -}
-
+transformationApply x f y (o, t)-- = Just (substitute x t (f (fromJust (match x o y))))
+    | match x o y == Nothing    = Nothing
+    | otherwise                 = Just (substitute x t (f (fromJust (match x o y))))
 
 -- Applying a list of patterns until one succeeds
 transformationsApply :: Eq a => a -> ([a] -> [a]) -> [([a], [a])] -> [a] -> Maybe [a]
-transformationsApply _ _ _ _ = Nothing
-{- TO BE WRITTEN -}
+transformationsApply _ _ [] _ = Nothing
+transformationsApply wc f (p:ps) o
+    | (transformationApply wc f o p) == Nothing = (transformationsApply wc f ps o)
+    | otherwise                                 = (transformationApply wc f o p)
