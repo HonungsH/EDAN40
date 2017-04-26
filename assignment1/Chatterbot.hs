@@ -26,16 +26,16 @@ type BotBrain = [(Phrase, [Phrase])]
 
 --------------------------------------------------------
 
---test case 
-transformations = [(words "I hate *", words "Why do you hate * ?")]
+--test case
+--transformations = [(words "I hate *", words "Why do you hate * ?")]
 
 stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
 stateOfMind botBrain = do
-     num <- randomIO :: IO Float
-     
+    num <- randomIO :: IO Float
+    return $ rulesApply $ (map . map2) (id, pick num) botBrain
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-rulesApply = (maybe [] id.) . transformationsApply "*" reflect
+rulesApply =  (maybe [] id.) . transformationsApply "*" reflect
 
 reflect :: Phrase -> Phrase
 reflect [] = []
@@ -75,8 +75,7 @@ prepare :: String -> Phrase
 prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|")
 
 rulesCompile :: [(String, [String])] -> BotBrain
-{- TO BE WRITTEN -}
-rulesCompile _ = []
+rulesCompile = (map . map2) ((words . map toLower), map words)
 
 
 --------------------------------------
@@ -101,8 +100,7 @@ reduce :: Phrase -> Phrase
 reduce = reductionsApply reductions
 
 reductionsApply :: [PhrasePair] -> Phrase -> Phrase
-{- TO BE WRITTEN -}
-reductionsApply _ = id
+reductionsApply r = fix $ try $ transformationsApply "*" id r
 
 
 -------------------------------------------------------
@@ -148,17 +146,15 @@ substituteCheck = substituteTest == testString
 matchTest = match '*' testPattern testString
 matchCheck = matchTest == Just testSubstitutions
 
-
-
 -------------------------------------------------------
 -- Applying patterns
 --------------------------------------------------------
 
 -- test case
-frenchPresentation = ("My name is *", "Je m'appelle *")
+--frenchPresentation = ("My name is *", "Je m'appelle *")
 
-swedishPresentation = ("My name is *", "Mitt namn är *")    
-presentations = [frenchPresentation, swedishPresentation]
+--swedishPresentation = ("My name is *", "Mitt namn är *")
+--presentations = [frenchPresentation, swedishPresentation]
 
 {-
 transformationsApplyTest =
