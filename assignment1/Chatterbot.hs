@@ -26,16 +26,16 @@ type BotBrain = [(Phrase, [Phrase])]
 
 --------------------------------------------------------
 
---test case
---transformations = [(words "I hate *", words "Why do you hate * ?")]
-
 stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
 stateOfMind botBrain = do
     num <- randomIO :: IO Float
     return $ rulesApply $ (map . map2) (id, pick num) botBrain
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-rulesApply =  (maybe [] id.) . transformationsApply "*" reflect
+rulesApply pair p
+    | result == Nothing     = []
+    | otherwise             = fromJust result
+    where result = transformationsApply "*" reflect pair p
 
 reflect :: Phrase -> Phrase
 reflect [] = []
@@ -75,8 +75,9 @@ prepare :: String -> Phrase
 prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|")
 
 rulesCompile :: [(String, [String])] -> BotBrain
-rulesCompile = (map . map2) ((words . map toLower), map words)
-
+rulesCompile = map $ map2 (f, g)
+    where   f = words . map toLower
+            g = map words
 
 --------------------------------------
 
@@ -100,8 +101,10 @@ reduce :: Phrase -> Phrase
 reduce = reductionsApply reductions
 
 reductionsApply :: [PhrasePair] -> Phrase -> Phrase
-reductionsApply r = fix $ try $ transformationsApply "*" id r
-
+reductionsApply r p
+    | result == Nothing = p
+    | otherwise         = reductionsApply r (fromJust result)
+    where result = transformationsApply "*" id r p
 
 -------------------------------------------------------
 -- Match and substitute
@@ -136,15 +139,15 @@ longerWildcardMatch (wc:ps) (x:xs) = mmap (x : ) (match wc (wc:ps) xs)
 
 -- Test cases --------------------
 
-testPattern =  "a=*;"
-testSubstitutions = "32"
-testString = "a=32;"
+--testPattern =  "a=*;"
+--testSubstitutions = "32"
+--testString = "a=32;"
 
-substituteTest = substitute '*' testPattern testSubstitutions
-substituteCheck = substituteTest == testString
+--substituteTest = substitute '*' testPattern testSubstitutions
+--substituteCheck = substituteTest == testString
 
-matchTest = match '*' testPattern testString
-matchCheck = matchTest == Just testSubstitutions
+--matchTest = match '*' testPattern testString
+--matchCheck = matchTest == Just testSubstitutions
 
 -------------------------------------------------------
 -- Applying patterns
