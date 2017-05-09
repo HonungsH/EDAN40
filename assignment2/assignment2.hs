@@ -9,6 +9,9 @@ scoreSpace = -1
 string1 = "writers"
 string2 = "vintner"
 
+long1 = "aferociousmonadatemyhamster"
+long2 = "functionalprogrammingrules"
+
 similarityScore :: String -> String -> Int
 similarityScore [] ys = sum $ map (score '-') ys
 similarityScore xs [] = sum $ map (score '-') xs
@@ -71,32 +74,6 @@ outputOptAlignments x y = do
     putStrLn $ "There were " ++ (show $ length result) ++ " optimal alignments!"
     where result = optAlignments x y
 
-{-
-optReverseResult :: (String, String) -> (String, String)
-optReverseResult (a, b) = (reverse a, reverse b)
-    
-optLength :: String -> String -> [AlignmentType]
-optLength xs ys = map optReverseResult $ optLen (length xs) (length ys)
-    where
-        optLen i j = optTable !! i !! j
-        optTable = [[optEntry i j | j <- [0..]] | i <- [0..]]
-        
-        optEntry :: Int -> Int -> [AlignmentType]
-        optEntry i 0 = [(take i xs, replicate i '-')]
-        optEntry 0 j = [(replicate j '-', take j ys)]
-        
-        -- optEntry i 0 = maximaBy scoreString $ attachHeads (xs !! (i - 1)) '-' $ optLen (i - 1) 0
-        -- optEntry 0 j = maximaBy scoreString $ attachHeads '-' (ys !! (j - 1)) $ optLen 0 (j - 1)
-        optEntry 0 0 = [("", "")]
-        optEntry i j
-                    | x == y    = maximaBy scoreString $ attachHeads x y $ optLen (i - 1) (j - 1)
-                    | otherwise = maximaBy scoreString $ (attachHeads '-' y $ optLen i (j - 1)) ++ (attachHeads x '-' $ optLen (i - 1) j) ++ (attachHeads x y $ optLen (i - 1) (j - 1))
-                    where
-                        x = xs !! (i - 1)
-                        y = ys !! (j - 1)
--- mcsLength :: Eq a => [a] -> [a] -> Int
---}
-
 reverseResult :: (String, String) -> (String, String)
 reverseResult (a, b) = (reverse a, reverse b)
 
@@ -110,47 +87,16 @@ optAlignmentsOptimized s1 s2 = map reverseResult $ snd $ mcsLen (length s1) (len
         mcsEntry 0 0 = (0, [("", "")])
         mcsEntry i 0 = (i * scoreSpace, [(take i s1, replicate i '-')])
         mcsEntry 0 j = (j * scoreSpace, [(replicate j '-', take j s2)])
-        --mcsEntry i j = (scoreString $ head result, result)
-        mcsEntry i j = (scoreString $ head $ fst result, result)
+        mcsEntry i j = (fst $ head $ result, concat $ map snd result)
             where
                 x = s1 !! (i - 1)
                 y = s2 !! (j - 1)
                 
-                alternativeOne = mcsLen (i - 1) (j - 1)
-                alternativeTwo = mcsLen i (j - 1)
-                alternativeThree = mcsLen (i - 1) j
+                result = maximaBy fst $ [(firstScore, firstResult), (secondScore, secondResult), (thirdScore, thirdResult)]
                 
-                result = maximaBy id $ [(attachHeads x y (snd alternativeOne)),
-                                                 (attachHeads '-' y (snd alternativeTwo)),
-                                                 (attachHeads x '-' (snd alternativeThree))]
-                
-                {--
-                result = maximaBy scoreString $ firstResult ++ secondResult ++ thirdResult
                 firstResult = attachHeads x y $ snd $ mcsLen (i - 1) (j - 1)
+                firstScore = (fst $ mcsLen (i - 1) (j - 1)) + (score x y)
                 secondResult = attachHeads '-' y $ snd $ mcsLen i (j - 1)
+                secondScore = (fst $ mcsLen i (j - 1)) + (score '-' y)
                 thirdResult = attachHeads x '-' $ snd $ mcsLen (i - 1) j
-                --}
-
-{--
-optAlignments2 :: String -> String -> [AlignmentType]
-optAlignments2 xs ys = map (\(a, b) -> (reverse a, reverse b)) (snd (opt (length xs) (length ys)))
-    where
-        opt :: Int -> Int -> (Int, [AlignmentType])
-        opt i j = optTable !! i !! j
-        optTable = [[ optEntry i j | j <- [0..] ] | i <- [0..] ]
-
-        optEntry :: Int -> Int -> (Int, [AlignmentType])
-        optEntry 0 0 = (0, [([],[])])
-        optEntry i 0 = (scoreSpace * i, [(take i xs, replicate i '-')])
-        optEntry 0 j = (scoreSpace * j, [(replicate j '-', take j ys)])
-        optEntry i j = (fst (head z), concatMap snd z)
-            where
-              (a, opta) = opt (i - 1) (j - 1)
-              (b, optb) = opt (i - 1) j
-              (c, optc) = opt i (j - 1)
-              x = xs !! (i - 1)
-              y = ys !! (j - 1)
-              z = maximaBy fst $ [ (a + score x y, attachHeads x y opta),
-                                   (b + score x '-', attachHeads x '-' optb),
-                                   (c + score '-' y, attachHeads '-' y optc) ]
---}
+                thirdScore = (fst $ mcsLen (i - 1) j) + (score x '-')
