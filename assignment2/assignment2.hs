@@ -87,7 +87,7 @@ optAlignmentsOptimized s1 s2 = map reverseResult $ snd $ mcsLen (length s1) (len
         mcsEntry 0 0 = (0, [("", "")])
         mcsEntry i 0 = (i * scoreSpace, [(take i s1, replicate i '-')])
         mcsEntry 0 j = (j * scoreSpace, [(replicate j '-', take j s2)])
-        mcsEntry i j = (fst $ head $ result, concat $ map snd result)
+        mcsEntry i j = (fst $ head $ result, [b | a <- map snd result, b <- a])
             where
                 x = s1 !! (i - 1)
                 y = s2 !! (j - 1)
@@ -96,7 +96,9 @@ optAlignmentsOptimized s1 s2 = map reverseResult $ snd $ mcsLen (length s1) (len
                 
                 firstResult = attachHeads x y $ snd $ mcsLen (i - 1) (j - 1)
                 firstScore = (fst $ mcsLen (i - 1) (j - 1)) + (score x y)
+                
                 secondResult = attachHeads '-' y $ snd $ mcsLen i (j - 1)
                 secondScore = (fst $ mcsLen i (j - 1)) + (score '-' y)
+                
                 thirdResult = attachHeads x '-' $ snd $ mcsLen (i - 1) j
                 thirdScore = (fst $ mcsLen (i - 1) j) + (score x '-')
