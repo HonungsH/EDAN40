@@ -6,11 +6,19 @@ import qualified Expr
 type T = Statement
 data Statement =
     Assignment String Expr.T |
-    If Expr.T Statement Statement
-    deriving Show
+    If Expr.T Statement Statement |
+    Skip |
+    Begin [Statement] | 
+    While Expr.T Statement |
+    Read String |
+    Write Expr.T
+        deriving Show
 
 assignment = word #- accept ":=" # Expr.parse #- require ";" >-> buildAss
 buildAss (v, e) = Assignment v e
+
+ifStatement = Expr.parse #- accept "then" # parse #- require "else" # parse >-> buildIf
+buildIf (e, s1, s2) = If e s1 s2  
 
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
 exec (If cond thenStmts elseStmts: stmts) dict input = 
@@ -19,5 +27,5 @@ exec (If cond thenStmts elseStmts: stmts) dict input =
     else exec (elseStmts: stmts) dict input
 
 instance Parse Statement where
-  parse = error "Statement.parse not implemented"
+  parse    = error "Statement.parse not implemented"
   toString = error "Statement.toString not implemented"

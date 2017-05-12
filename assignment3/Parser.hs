@@ -25,7 +25,7 @@ m -# n = m # n >-> snd
 m #- n = m # n >-> fst
 
 spaces :: Parser String
-spaces = iter (\(a) -> a ? isSpace)
+spaces = iter $ char ? isSpace
 
 token :: Parser a -> Parser a
 token m = m #- spaces
