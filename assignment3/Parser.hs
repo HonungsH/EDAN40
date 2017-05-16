@@ -35,7 +35,7 @@ letter :: Parser Char
 letter = char ? isAlpha
             
 isNewline :: Char -> Bool
-isNewline c = c == '\n'
+isNewline c = c /= '\n'
 
 comment :: Parser String
 comment = iter $ char ? isNewline
@@ -53,7 +53,7 @@ accept :: String -> Parser String
 accept w = (token (chars (length w))) ? (==w)
 
 require :: String -> Parser String
-require w = accept w ! (err ("Strings do not match"))
+require w = accept w ! (err $ "Strings do not match")
         
 
 lit :: Char -> Parser Char
@@ -70,4 +70,3 @@ number' n = digitVal #> (\ d -> number' (10*n+d))
           ! return n
 number :: Parser Integer
 number = token (digitVal #> number')
-

@@ -21,7 +21,7 @@ buildAss (v, e) = Assignment v e
 ifStatement = accept "if" -# Expr.parse #- require "then" # parse #- require "else" # parse >-> buildIf
 buildIf ((e, s1), s2) = If e s1 s2  
 
-skipStatement = accept "skip" # require ";" >-> buildSkip
+skipStatement = accept "skip" -# require ";" >-> buildSkip
 buildSkip s = Skip
 
 beginStatement = accept "begin" -# iter parse #- require "end" >-> buildBegin
@@ -36,10 +36,23 @@ buildRead s = Read s
 writeStatement = accept "write" -# Expr.parse #- require ";" >-> buildWrite
 buildWrite e = Write e 
 
-writeComment = accept "--" -# comment >-> buildComment
+writeComment = accept "--" -# comment #- require "\n" >-> buildComment
 buildComment s = Comment s
 
+nbrOfTabs tabs = replicate tabs '\t'
+
+printProgram :: Int -> Statement -> String
+printProgram tabs (Assignment s e) = nbrOfTabs tabs ++ s ++ " := " ++ Expr.toString e ++ ";\n"
+printProgram tabs (If e s1 s2) = nbrOfTabs tabs ++ "if " ++ Expr.toString e ++ " then\n" ++ printProgram (tabs + 1) s1 ++ nbrOfTabs tabs ++ "else\n" ++ printProgram (tabs + 1) s2
+printProgram tabs (Skip) = nbrOfTabs tabs ++ "skip;\n"
+printProgram tabs (Begin stlist) = nbrOfTabs tabs ++ "begin\n" ++ concat (map (printProgram (tabs + 1)) stlist) ++ nbrOfTabs tabs ++ "end\n"
+printProgram tabs (While e s) = nbrOfTabs tabs ++ "while " ++ Expr.toString e ++ " do\n" ++ printProgram (tabs + 1) s
+printProgram tabs (Read s) = nbrOfTabs tabs ++ "read " ++ s ++ ";\n"
+printProgram tabs (Write e) = nbrOfTabs tabs ++ "write " ++ Expr.toString e ++ ";\n"
+printProgram tabs (Comment s) = nbrOfTabs tabs ++ "--" ++ s ++ "\n" 
+
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
+exec [] _ _ = []
 exec (If cond thenStmts elseStmts: stmts) dict input = 
     if (Expr.value cond dict)>0 
     then exec (thenStmts: stmts) dict input
@@ -58,4 +71,4 @@ exec (Comment string : stmts) dict input = exec stmts dict input
 
 instance Parse Statement where
   parse = assignment ! skipStatement ! beginStatement ! ifStatement ! whileStatement ! readStatement ! writeStatement ! writeComment
-  toString = error "Statement.toString not implemented"
+  toString = printProgram 0

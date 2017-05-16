@@ -49,8 +49,8 @@ rp1 = Program.exec p1 [1024, 2]
 p4 = fromString  ("\
 \read a;\
 \read b;\
-\-- a comment\
 \s := 3;\
+\-- NAJS HEJ BAJS IDAG IGEN? kanske diarre, vi får se comment hej bajs \n\
 \while a do\
 \  begin\
 \    c := a^s;\
