@@ -50,7 +50,7 @@ p4 = fromString  ("\
 \read a;\
 \read b;\
 \s := 3;\
-\-- NAJS HEJ BAJS IDAG IGEN? kanske diarre, vi får se comment hej bajs \n\
+\-- a comment\n\
 \while a do\
 \  begin\
 \    c := a^s;\
