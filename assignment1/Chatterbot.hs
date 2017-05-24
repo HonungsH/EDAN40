@@ -32,16 +32,18 @@ stateOfMind botBrain = do
     return $ rulesApply $ (map . map2) (id, pick num) botBrain
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-rulesApply pair p
-    | result == Nothing     = []
-    | otherwise             = fromJust result
-    where result = transformationsApply "*" reflect pair p
+rulesApply = (maybe [] id . ) . transformationsApply "*" reflect
 
+reflect :: Phrase -> Phrase
+reflect = map $ try $ flip lookup reflections
+
+{--
 reflect :: Phrase -> Phrase
 reflect [] = []
 reflect (x:xs)
     | (lookup x reflections) == Nothing   = x : (reflect xs)
     | otherwise                           = (fromJust (lookup x reflections)) : (reflect xs)
+--}
 
 reflections =
   [ ("am",     "are"),
@@ -101,10 +103,15 @@ reduce :: Phrase -> Phrase
 reduce = reductionsApply reductions
 
 reductionsApply :: [PhrasePair] -> Phrase -> Phrase
+reductionsApply = fix . try . transformationsApply "*" id
+
+{--
+reductionsApply :: [PhrasePair] -> Phrase -> Phrase
 reductionsApply r p
     | result == Nothing = p
     | otherwise         = reductionsApply r (fromJust result)
     where result = transformationsApply "*" id r p
+--}
 
 -------------------------------------------------------
 -- Match and substitute
@@ -131,9 +138,13 @@ match x (y:ys) (z:zs)
 
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
+singleWildcardMatch (wc:ps) (x:xs) = mmap (const [x]) (match wc ps xs)
+{--
+singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 singleWildcardMatch (wc:ps) (x:xs)
     | isJust (match wc ps xs)   = Just [x]
     | otherwise                 = Nothing
+--}
 
 longerWildcardMatch (wc:ps) (x:xs) = mmap (x : ) (match wc (wc:ps) xs)
 
